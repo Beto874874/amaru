@@ -14,6 +14,8 @@ const RUTAS_ESPERADAS = [
   '/auth/logout-all',
   '/auth/me',
   '/auth/password',
+  '/inmuebles',
+  '/inmuebles/{id}',
 ];
 
 describe('documento OpenAPI', () => {

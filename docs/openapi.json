@@ -214,6 +214,228 @@
           "usuario"
         ],
         "additionalProperties": false
+      },
+      "Contacto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "direccion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "correo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "nombre",
+          "telefono",
+          "direccion",
+          "correo"
+        ],
+        "additionalProperties": false
+      },
+      "Inmueble": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "codigo_sae": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "departamento": {
+            "type": "string"
+          },
+          "ciudad": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "estrato": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "valor_arriendo": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "area_terreno": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "area_construida": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "mas_admon": {
+            "type": "boolean"
+          },
+          "en_home": {
+            "type": "boolean"
+          },
+          "iva": {
+            "type": "boolean"
+          },
+          "pagina_web": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "Disponible",
+              "Arrendado",
+              "No disponible"
+            ]
+          },
+          "ubicacion_inferida": {
+            "type": "boolean"
+          },
+          "alertas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fecha_publicacion": {
+            "type": "string",
+            "description": "ISO 8601 en UTC"
+          },
+          "contacto": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "nombre": {
+                "type": "string"
+              },
+              "telefono": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "direccion": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "correo": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "nombre",
+              "telefono",
+              "direccion",
+              "correo"
+            ],
+            "additionalProperties": false
+          },
+          "publicado_por_usuario": {
+            "type": "boolean",
+            "description": "false = inmueble importado del CSV, sin dueno"
+          },
+          "es_mio": {
+            "type": "boolean",
+            "description": "true si el solicitante autenticado es el dueno"
+          }
+        },
+        "required": [
+          "id",
+          "codigo_sae",
+          "nombre",
+          "tipo",
+          "departamento",
+          "ciudad",
+          "direccion",
+          "estrato",
+          "valor_arriendo",
+          "area_terreno",
+          "area_construida",
+          "mas_admon",
+          "en_home",
+          "iva",
+          "pagina_web",
+          "estado",
+          "ubicacion_inferida",
+          "alertas",
+          "fecha_publicacion",
+          "contacto",
+          "publicado_por_usuario",
+          "es_mio"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaInmueble": {
+        "type": "object",
+        "properties": {
+          "inmueble": {
+            "$ref": "#/components/schemas/Inmueble"
+          }
+        },
+        "required": [
+          "inmueble"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaListaInmuebles": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Inmueble"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginacionMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
       }
     },
     "parameters": {}
@@ -908,6 +1130,1030 @@
           },
           "401": {
             "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inmuebles": {
+      "get": {
+        "tags": [
+          "Inmuebles"
+        ],
+        "summary": "Lista inmuebles paginados y filtrados",
+        "description": "Publico. Devuelve solo inmuebles con el estado pedido (por defecto `Disponible`). Los filtros por departamento, ciudad y tipo usan **IDs** (no nombres). `q` busca en `nombre_inmueble` y `direccion` escapando los comodines de LIKE. El orden siempre agrega `id_inmueble` como desempate para que la paginacion sea estable. Con sesion, cada inmueble incluye `es_mio`; `mias=true` exige sesion (401 si no hay) y filtra por el usuario del token.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "description": "ID del departamento"
+            },
+            "required": false,
+            "description": "ID del departamento",
+            "name": "departamento",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "description": "ID de la ciudad"
+            },
+            "required": false,
+            "description": "ID de la ciudad",
+            "name": "ciudad",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "description": "ID del tipo de inmueble"
+            },
+            "required": false,
+            "description": "ID del tipo de inmueble",
+            "name": "tipo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 6
+            },
+            "required": false,
+            "name": "estrato",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "required": false,
+            "name": "valor_min",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "required": false,
+            "name": "valor_max",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "description": "Sobre area_construida"
+            },
+            "required": false,
+            "description": "Sobre area_construida",
+            "name": "area_min",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "description": "Sobre area_construida"
+            },
+            "required": false,
+            "description": "Sobre area_construida",
+            "name": "area_max",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Disponible",
+                "Arrendado",
+                "No disponible"
+              ],
+              "default": "Disponible"
+            },
+            "required": false,
+            "name": "estado",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "description": "Texto en nombre_inmueble y direccion (ILIKE)"
+            },
+            "required": false,
+            "description": "Texto en nombre_inmueble y direccion (ILIKE)",
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "true",
+                    "false"
+                  ]
+                }
+              ],
+              "description": "Solo los del usuario autenticado; exige sesion"
+            },
+            "required": false,
+            "description": "Solo los del usuario autenticado; exige sesion",
+            "name": "mias",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "valor_arriendo",
+                "fecha_publicacion",
+                "area_construida"
+              ],
+              "default": "fecha_publicacion"
+            },
+            "required": false,
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "required": false,
+            "name": "order",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de inmuebles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaListaInmuebles"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 98635,
+                      "codigo_sae": "SAE-000123",
+                      "nombre": "Apartamento - SAE-000123",
+                      "tipo": "Apartamento",
+                      "departamento": "Risaralda",
+                      "ciudad": "Pereira",
+                      "direccion": "Carrera 7 # 25-40, Apto 502",
+                      "estrato": 4,
+                      "valor_arriendo": 1500000,
+                      "area_terreno": 80.5,
+                      "area_construida": 72.25,
+                      "mas_admon": false,
+                      "en_home": true,
+                      "iva": false,
+                      "pagina_web": null,
+                      "estado": "Disponible",
+                      "ubicacion_inferida": false,
+                      "alertas": [],
+                      "fecha_publicacion": "2026-11-09T18:00:00.000Z",
+                      "contacto": {
+                        "nombre": "Inmobiliaria Los Andes",
+                        "telefono": "+57 601 555 0123",
+                        "direccion": "Calle 10 # 20-30, Bogota",
+                        "correo": "contacto@losandes.example"
+                      },
+                      "publicado_por_usuario": true,
+                      "es_mio": false
+                    }
+                  ],
+                  "meta": {
+                    "page": 1,
+                    "limit": 20,
+                    "total": 1,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Inmuebles"
+        ],
+        "summary": "Publica un inmueble",
+        "description": "Requiere sesion. `tipo_inmueble` y `departamento` deben existir en los catalogos por nombre exacto; `ciudad` debe existir dentro del departamento. Si `nombre_inmueble` falta se genera `\"<tipo_inmueble> - <codigo_sae>\"`. El `codigo_sae` es unico: si se repite responde 409 `CODIGO_SAE_DUPLICADO`. Los campos controlados por el servidor (`id_inmueble`, `id_usuario`, fechas, `ubicacion_inferida`, `alertas`) se rechazan con 400 si llegan. Los datos de contacto se muestran en la respuesta, pero nunca el usuario dueno.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "codigo_sae": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50,
+                    "description": "Codigo unico del inmueble en el sistema SAE"
+                  },
+                  "tipo_inmueble": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Nombre exacto del tipo en el catalogo"
+                  },
+                  "departamento": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Nombre exacto del departamento en el catalogo"
+                  },
+                  "direccion": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "nombre_inmueble": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "Si falta se genera \"<tipo_inmueble> - <codigo_sae>\""
+                  },
+                  "ciudad": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "Nombre de la ciudad dentro del departamento"
+                  },
+                  "estrato": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1,
+                    "maximum": 6
+                  },
+                  "valor_arriendo": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1,
+                    "description": "Valor mensual en pesos colombianos"
+                  },
+                  "area_terreno": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "area_construida": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "mas_admon": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Valor incluye administracion"
+                  },
+                  "en_home": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "iva": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "pagina_web": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500,
+                    "format": "uri"
+                  },
+                  "estado_inmueble": {
+                    "type": "string",
+                    "enum": [
+                      "Disponible",
+                      "Arrendado",
+                      "No disponible"
+                    ],
+                    "default": "Disponible"
+                  },
+                  "nombre_contacto": {
+                    "type": "string",
+                    "maxLength": 150,
+                    "description": "Si viene, el contacto se busca o se crea"
+                  },
+                  "telefono_contacto": {
+                    "type": "string",
+                    "maxLength": 50
+                  },
+                  "direccion_contacto": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "correo_contacto": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 254,
+                    "format": "email"
+                  },
+                  "matricula_inmobiliaria": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "description": "Se acepta por compatibilidad con el CSV, pero el servidor lo ignora"
+                  }
+                },
+                "required": [
+                  "codigo_sae",
+                  "tipo_inmueble",
+                  "departamento",
+                  "direccion"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "codigo_sae": "SAE-000123",
+                "tipo_inmueble": "Apartamento",
+                "departamento": "Risaralda",
+                "ciudad": "Pereira",
+                "direccion": "Carrera 7 # 25-40, Apto 502",
+                "estrato": 4,
+                "valor_arriendo": 1500000,
+                "area_terreno": 80.5,
+                "area_construida": 72.25,
+                "mas_admon": false,
+                "en_home": true,
+                "iva": false,
+                "pagina_web": "https://ejemplo.com/inmueble/SAE-000123",
+                "estado_inmueble": "Disponible",
+                "nombre_contacto": "Inmobiliaria Los Andes",
+                "telefono_contacto": "+57 601 555 0123",
+                "direccion_contacto": "Calle 10 # 20-30, Bogota",
+                "correo_contacto": "contacto@losandes.example"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Inmueble creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaInmueble"
+                },
+                "example": {
+                  "inmueble": {
+                    "id": 98635,
+                    "codigo_sae": "SAE-000123",
+                    "nombre": "Apartamento - SAE-000123",
+                    "tipo": "Apartamento",
+                    "departamento": "Risaralda",
+                    "ciudad": "Pereira",
+                    "direccion": "Carrera 7 # 25-40, Apto 502",
+                    "estrato": 4,
+                    "valor_arriendo": 1500000,
+                    "area_terreno": 80.5,
+                    "area_construida": 72.25,
+                    "mas_admon": false,
+                    "en_home": true,
+                    "iva": false,
+                    "pagina_web": null,
+                    "estado": "Disponible",
+                    "ubicacion_inferida": false,
+                    "alertas": [],
+                    "fecha_publicacion": "2026-11-09T18:00:00.000Z",
+                    "contacto": {
+                      "nombre": "Inmobiliaria Los Andes",
+                      "telefono": "+57 601 555 0123",
+                      "direccion": "Calle 10 # 20-30, Bogota",
+                      "correo": "contacto@losandes.example"
+                    },
+                    "publicado_por_usuario": true,
+                    "es_mio": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inmuebles/{id}": {
+      "get": {
+        "tags": [
+          "Inmuebles"
+        ],
+        "summary": "Obtiene el detalle de un inmueble",
+        "description": "Publico. El `id` debe ser un entero positivo (400 si no). Si no existe responde 404 `INMUEBLE_NO_ENCONTRADO`. Con sesion, `es_mio` indica si el solicitante es el dueno.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle del inmueble",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaInmueble"
+                },
+                "example": {
+                  "inmueble": {
+                    "id": 98635,
+                    "codigo_sae": "SAE-000123",
+                    "nombre": "Apartamento - SAE-000123",
+                    "tipo": "Apartamento",
+                    "departamento": "Risaralda",
+                    "ciudad": "Pereira",
+                    "direccion": "Carrera 7 # 25-40, Apto 502",
+                    "estrato": 4,
+                    "valor_arriendo": 1500000,
+                    "area_terreno": 80.5,
+                    "area_construida": 72.25,
+                    "mas_admon": false,
+                    "en_home": true,
+                    "iva": false,
+                    "pagina_web": null,
+                    "estado": "Disponible",
+                    "ubicacion_inferida": false,
+                    "alertas": [],
+                    "fecha_publicacion": "2026-11-09T18:00:00.000Z",
+                    "contacto": {
+                      "nombre": "Inmobiliaria Los Andes",
+                      "telefono": "+57 601 555 0123",
+                      "direccion": "Calle 10 # 20-30, Bogota",
+                      "correo": "contacto@losandes.example"
+                    },
+                    "publicado_por_usuario": true,
+                    "es_mio": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Inmuebles"
+        ],
+        "summary": "Actualiza parcialmente un inmueble",
+        "description": "Requiere sesion. Solo el dueno del inmueble o un admin puede modificarlo; los inmuebles importados del CSV (sin dueno) solo los edita un admin. Un campo ausente no se toca; un opcional se vacia enviando `null`. Al cambiar `departamento` o `ciudad` se revalida que la ciudad resultante pertenezca al departamento. Los contactos son compartidos: si sus datos cambian se crea/reutiliza otro y se reasigna. `nombre_contacto: null` quita el contacto.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "codigo_sae": {
+                    "type": "string",
+                    "maxLength": 50
+                  },
+                  "tipo_inmueble": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "departamento": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "direccion": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "nombre_inmueble": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "ciudad": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "estrato": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1,
+                    "maximum": 6
+                  },
+                  "valor_arriendo": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1
+                  },
+                  "area_terreno": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "area_construida": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "mas_admon": {
+                    "type": "boolean"
+                  },
+                  "en_home": {
+                    "type": "boolean"
+                  },
+                  "iva": {
+                    "type": "boolean"
+                  },
+                  "pagina_web": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500,
+                    "format": "uri"
+                  },
+                  "estado_inmueble": {
+                    "type": "string",
+                    "enum": [
+                      "Disponible",
+                      "Arrendado",
+                      "No disponible"
+                    ]
+                  },
+                  "nombre_contacto": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 150
+                  },
+                  "telefono_contacto": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50
+                  },
+                  "direccion_contacto": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200
+                  },
+                  "correo_contacto": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 254,
+                    "format": "email"
+                  },
+                  "matricula_inmobiliaria": {
+                    "type": "string",
+                    "maxLength": 50
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "valor_arriendo": 1650000,
+                "estado_inmueble": "Arrendado"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inmueble actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaInmueble"
+                },
+                "example": {
+                  "inmueble": {
+                    "id": 98635,
+                    "codigo_sae": "SAE-000123",
+                    "nombre": "Apartamento - SAE-000123",
+                    "tipo": "Apartamento",
+                    "departamento": "Risaralda",
+                    "ciudad": "Pereira",
+                    "direccion": "Carrera 7 # 25-40, Apto 502",
+                    "estrato": 4,
+                    "valor_arriendo": 1650000,
+                    "area_terreno": 80.5,
+                    "area_construida": 72.25,
+                    "mas_admon": false,
+                    "en_home": true,
+                    "iva": false,
+                    "pagina_web": null,
+                    "estado": "Arrendado",
+                    "ubicacion_inferida": false,
+                    "alertas": [],
+                    "fecha_publicacion": "2026-11-09T18:00:00.000Z",
+                    "contacto": {
+                      "nombre": "Inmobiliaria Los Andes",
+                      "telefono": "+57 601 555 0123",
+                      "direccion": "Calle 10 # 20-30, Bogota",
+                      "correo": "contacto@losandes.example"
+                    },
+                    "publicado_por_usuario": true,
+                    "es_mio": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Inmuebles"
+        ],
+        "summary": "Elimina un inmueble",
+        "description": "Requiere sesion. Misma regla de propiedad que PATCH. Borrado fisico; el contacto NO se elimina porque es compartido. Responde 204 sin cuerpo.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Inmueble eliminado"
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
             "content": {
               "application/json": {
                 "schema": {
