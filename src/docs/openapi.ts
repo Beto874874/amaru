@@ -6,6 +6,7 @@ import './components.js';
 // Cada modulo registra sus paths al importarse. Un endpoint nuevo se agrega
 // aqui y en su propio <modulo>.openapi.ts.
 import '../modules/sistema/sistema.openapi.js';
+import '../modules/auth/auth.openapi.js';
 
 interface PackageJson {
   version: string;

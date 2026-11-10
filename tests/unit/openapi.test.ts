@@ -2,14 +2,29 @@ import { describe, expect, it } from 'vitest';
 import SwaggerParser from '@apidevtools/swagger-parser';
 import { buildOpenApiDocument } from '../../src/docs/openapi.js';
 
+type DocumentoSwagger = Parameters<typeof SwaggerParser.validate>[0];
+
 // Rutas minimas que el contrato debe exponer (se amplia por fase).
-const RUTAS_ESPERADAS = ['/health'];
+const RUTAS_ESPERADAS = [
+  '/health',
+  '/auth/register',
+  '/auth/login',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/logout-all',
+  '/auth/me',
+  '/auth/password',
+];
 
 describe('documento OpenAPI', () => {
   const documento = buildOpenApiDocument();
 
   it('es un OpenAPI 3.1 valido (sin $ref rotos)', async () => {
-    await expect(SwaggerParser.validate(structuredClone(documento))).resolves.toBeTruthy();
+    // El documento lo genera openapi3-ts y el validador usa openapi-types:
+    // son estructuralmente iguales, pero de paquetes distintos. El cast evita
+    // un choque de tipos sin relajar la validacion real en tiempo de ejecucion.
+    const documentoParaValidar = structuredClone(documento) as unknown as DocumentoSwagger;
+    await expect(SwaggerParser.validate(documentoParaValidar)).resolves.toBeTruthy();
   });
 
   it('declara las rutas principales', () => {
