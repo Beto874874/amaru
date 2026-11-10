@@ -1,0 +1,245 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "API de Inmuebles en Arriendo",
+    "version": "1.0.0",
+    "description": "API REST para consultar y publicar inmuebles en arriendo en Colombia.\nLos datos iniciales provienen de un CSV de 1365 inmuebles.\n\n## Reglas de negocio\n\n- **Publico**: ver inmuebles y catalogos (departamentos, ciudades, tipos).\n- **Requiere sesion**: publicar un inmueble y crear contactos.\n- **Solo el dueno o un admin**: editar o eliminar un inmueble publicado.\n- **Solo admin**: editar/eliminar contactos, gestionar catalogos e importar CSV.\n- Los 1365 inmuebles del CSV no tienen dueno: solo un admin puede modificarlos.\n\n## Como autenticarse\n\nLa autenticacion es propia (JWT) y los tokens viajan **solo en cookies httpOnly**:\n\n1. `POST /auth/register` o `POST /auth/login` guardan `access_token` (15 minutos)\n   y `refresh_token` (7 dias, limitada a `/api/v1/auth`).\n2. El navegador envia las cookies automaticamente; el front **no** puede leerlas\n   ni debe guardar tokens en localStorage.\n3. Cuando una peticion responde 401 con `TOKEN_EXPIRADO`, llama una vez a\n   `POST /auth/refresh` y reintenta.\n4. `POST /auth/logout` revoca la sesion actual; `POST /auth/logout-all` todas.\n\n### Limitacion de Swagger UI\n\nSegun la documentacion oficial de Swagger, \"Try it out\" no soporta bien cookies\nhttpOnly: el boton **Authorize** no sirve aqui. Si el navegador guarda las\ncookies del login hecho desde esta misma pagina (mismo origen), los endpoints\nprotegidos responden. Si no, usa el contrato exportado en `docs/openapi.json`\no la guia `docs/FRONTEND.md` para probar con curl/Postman.\n\nGuia de integracion para el front: `docs/FRONTEND.md` del repositorio."
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Prefijo de la API (relativo al host actual)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Sistema",
+      "description": "Estado del API y de la base de datos"
+    },
+    {
+      "name": "Auth",
+      "description": "Registro, login, refresh, logout y perfil propio"
+    },
+    {
+      "name": "Inmuebles",
+      "description": "Consulta publica y publicacion autenticada de inmuebles"
+    },
+    {
+      "name": "Catalogos",
+      "description": "Departamentos, ciudades y tipos de inmueble"
+    },
+    {
+      "name": "Contactos",
+      "description": "Contactos/inmobiliarias que publican inmuebles"
+    },
+    {
+      "name": "Importacion",
+      "description": "Carga masiva de inmuebles por CSV (solo admin)"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "access_token",
+        "description": "Sesion por cookies httpOnly. Hace login en /auth/login y el navegador guarda access_token (15 min) y refresh_token (7 dias, limitada a /api/v1/auth). El front debe enviar credentials: 'include' en cada peticion."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Codigo estable en MAYUSCULAS; el front decide con el, no con el mensaje"
+              },
+              "message": {
+                "type": "string",
+                "description": "Mensaje en espanol para mostrar al usuario"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "campo": {
+                      "type": "string",
+                      "description": "Nombre del campo que fallo"
+                    },
+                    "mensaje": {
+                      "type": "string",
+                      "description": "Explicacion en espanol"
+                    }
+                  },
+                  "required": [
+                    "campo",
+                    "mensaje"
+                  ],
+                  "additionalProperties": false
+                },
+                "description": "Solo en errores de validacion"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "ErrorValidacion": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "campo": {
+                      "type": "string",
+                      "description": "Nombre del campo que fallo"
+                    },
+                    "mensaje": {
+                      "type": "string",
+                      "description": "Explicacion en espanol"
+                    }
+                  },
+                  "required": [
+                    "campo",
+                    "mensaje"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "details"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "PaginacionMeta": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "Pagina actual (empieza en 1)"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Elementos por pagina (maximo 100)"
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total de elementos que cumplen los filtros"
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total de paginas (techo de total / limit)"
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Sistema"
+        ],
+        "summary": "Comprueba que el API y la base de datos responden",
+        "description": "Publico. Ejecuta `select 1` contra Supabase. Util para el healthcheck del despliegue.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "El API y la base de datos responden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    },
+                    "db": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "db"
+                  ],
+                  "additionalProperties": false
+                },
+                "example": {
+                  "status": "ok",
+                  "db": "ok"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

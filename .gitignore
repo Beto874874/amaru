@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+
+# Compilado
+dist/
+
+# Variables de entorno (NUNCA versionar secretos)
+.env
+.env.test
+.env.local
+.env.*.local
+
+# Salida temporal de drizzle-kit pull
+.drizzle-pull/
+
+# Cobertura de pruebas
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
