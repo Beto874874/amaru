@@ -1,6 +1,7 @@
 import { and, asc, count, desc, eq, gte, ilike, isNull, lte, or, type SQL } from 'drizzle-orm';
 import { db } from '../../config/db.js';
 import { ciudad, contacto, departamento, inmueble, tipoInmueble } from '../../db/schema/index.js';
+import { escaparLike } from '../../shared/sql.js';
 import type { EstadoInmueble } from './schemas.js';
 
 // ---------------------------------------------------------------------------
@@ -82,11 +83,6 @@ export interface OrdenLista {
 export interface PaginacionDb {
   offset: number;
   limit: number;
-}
-
-/** Escapa los comodines de LIKE para que la busqueda del usuario sea literal. */
-function escaparLike(texto: string): string {
-  return texto.replace(/[\\%_]/g, (caracter) => `\\${caracter}`);
 }
 
 function construirCondiciones(filtros: FiltrosLista): SQL[] {

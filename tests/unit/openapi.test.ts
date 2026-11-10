@@ -16,6 +16,14 @@ const RUTAS_ESPERADAS = [
   '/auth/password',
   '/inmuebles',
   '/inmuebles/{id}',
+  '/departamentos',
+  '/departamentos/{id}',
+  '/ciudades',
+  '/ciudades/{id}',
+  '/tipos-inmueble',
+  '/tipos-inmueble/{id}',
+  '/contactos',
+  '/contactos/{id}',
 ];
 
 describe('documento OpenAPI', () => {

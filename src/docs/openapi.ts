@@ -8,6 +8,8 @@ import './components.js';
 import '../modules/sistema/sistema.openapi.js';
 import '../modules/auth/auth.openapi.js';
 import '../modules/inmuebles/inmuebles.openapi.js';
+import '../modules/catalogos/catalogos.openapi.js';
+import '../modules/contactos/contactos.openapi.js';
 
 interface PackageJson {
   version: string;

@@ -436,6 +436,207 @@
           "meta"
         ],
         "additionalProperties": false
+      },
+      "Departamento": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nombre"
+        ],
+        "additionalProperties": false
+      },
+      "Ciudad": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "id_departamento": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "id_departamento"
+        ],
+        "additionalProperties": false
+      },
+      "TipoInmueble": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nombre"
+        ],
+        "additionalProperties": false
+      },
+      "ListaDepartamentos": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Departamento"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "ListaCiudades": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Ciudad"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "ListaTiposInmueble": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TipoInmueble"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaDepartamento": {
+        "type": "object",
+        "properties": {
+          "departamento": {
+            "$ref": "#/components/schemas/Departamento"
+          }
+        },
+        "required": [
+          "departamento"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaCiudad": {
+        "type": "object",
+        "properties": {
+          "ciudad": {
+            "$ref": "#/components/schemas/Ciudad"
+          }
+        },
+        "required": [
+          "ciudad"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaTipoInmueble": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "$ref": "#/components/schemas/TipoInmueble"
+          }
+        },
+        "required": [
+          "tipo"
+        ],
+        "additionalProperties": false
+      },
+      "ContactoConId": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "direccion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "correo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "telefono",
+          "direccion",
+          "correo"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaContacto": {
+        "type": "object",
+        "properties": {
+          "contacto": {
+            "$ref": "#/components/schemas/ContactoConId"
+          }
+        },
+        "required": [
+          "contacto"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaListaContactos": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactoConId"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginacionMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
       }
     },
     "parameters": {}
@@ -2154,6 +2355,1882 @@
           },
           "404": {
             "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/departamentos": {
+      "get": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Lista los departamentos ordenados por nombre",
+        "description": "Publico. Devuelve el catalogo completo (26 departamentos) con cache publico corto.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Departamentos ordenados por nombre",
+            "headers": {
+              "Cache-Control": {
+                "description": "Cache publico corto (max-age=300): los catalogos casi no cambian.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaDepartamentos"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 17,
+                      "nombre": "Risaralda"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Crea un departamento (solo admin)",
+        "description": "Nombre con trim y no vacio. Si ya existe responde 409.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "nombre"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "nombre": "Caldas"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Departamento creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaDepartamento"
+                },
+                "example": {
+                  "departamento": {
+                    "id": 33,
+                    "nombre": "Caldas"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/departamentos/{id}": {
+      "patch": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Renombra un departamento (solo admin)",
+        "description": "Un nombre repetido responde 409. No permite enviar el body vacio.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "nombre": "Risaralda"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Departamento actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaDepartamento"
+                },
+                "example": {
+                  "departamento": {
+                    "id": 17,
+                    "nombre": "Risaralda"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Elimina un departamento (solo admin)",
+        "description": "Si tiene ciudades o inmuebles asociados responde 409 `REFERENCIA_INVALIDA` (lo garantiza la FK; no se hace una consulta previa que tenga carrera). 204 sin cuerpo.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Departamento eliminado"
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ciudades": {
+      "get": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Lista las ciudades ordenadas por nombre",
+        "description": "Publico. `?departamento=<id>` limita la lista a las ciudades de ese departamento. Cache publico corto.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": false,
+            "name": "departamento",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ciudades ordenadas por nombre",
+            "headers": {
+              "Cache-Control": {
+                "description": "Cache publico corto (max-age=300): los catalogos casi no cambian.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaCiudades"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 1,
+                      "nombre": "Pereira",
+                      "id_departamento": 17
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Crea una ciudad (solo admin)",
+        "description": "El departamento debe existir (400 `DEPARTAMENTO_INVALIDO`). Una ciudad repetida dentro del mismo departamento responde 409.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "id_departamento": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "nombre",
+                  "id_departamento"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "nombre": "Manizales",
+                "id_departamento": 33
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ciudad creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaCiudad"
+                },
+                "example": {
+                  "ciudad": {
+                    "id": 1101,
+                    "nombre": "Manizales",
+                    "id_departamento": 33
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ciudades/{id}": {
+      "patch": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Actualiza una ciudad (solo admin)",
+        "description": "Puede cambiar el nombre y/o el departamento. Si la ciudad esta en uso y el cambio rompe la FK compuesta de los inmuebles responde 409 `REFERENCIA_INVALIDA`.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "id_departamento": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "nombre": "Pereira"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ciudad actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaCiudad"
+                },
+                "example": {
+                  "ciudad": {
+                    "id": 1,
+                    "nombre": "Pereira",
+                    "id_departamento": 17
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Elimina una ciudad (solo admin)",
+        "description": "Si esta en uso responde 409 `REFERENCIA_INVALIDA`. 204 sin cuerpo.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ciudad eliminada"
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tipos-inmueble": {
+      "get": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Lista los tipos de inmueble ordenados por nombre",
+        "description": "Publico. Devuelve el catalogo completo (18 tipos) con cache publico corto.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Tipos ordenados por nombre",
+            "headers": {
+              "Cache-Control": {
+                "description": "Cache publico corto (max-age=300): los catalogos casi no cambian.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaTiposInmueble"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 1,
+                      "nombre": "Apartamento"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Crea un tipo de inmueble (solo admin)",
+        "description": "Nombre con trim y no vacio. Si ya existe responde 409.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "nombre"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "nombre": "Bodega"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tipo creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaTipoInmueble"
+                },
+                "example": {
+                  "tipo": {
+                    "id": 19,
+                    "nombre": "Bodega"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tipos-inmueble/{id}": {
+      "patch": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Renombra un tipo de inmueble (solo admin)",
+        "description": "Un nombre repetido responde 409. No permite enviar el body vacio.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "nombre": "Apartamento"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tipo actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaTipoInmueble"
+                },
+                "example": {
+                  "tipo": {
+                    "id": 1,
+                    "nombre": "Apartamento"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Catalogos"
+        ],
+        "summary": "Elimina un tipo de inmueble (solo admin)",
+        "description": "Si tiene inmuebles asociados responde 409 `REFERENCIA_INVALIDA`. 204 sin cuerpo.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Tipo eliminado"
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contactos": {
+      "get": {
+        "tags": [
+          "Contactos"
+        ],
+        "summary": "Lista contactos con busqueda por nombre",
+        "description": "Requiere sesion. Lista paginada ordenada por nombre. `q` busca de forma parcial (ILIKE) sobre el nombre escapando los comodines del usuario.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 150,
+              "description": "Busqueda parcial por nombre (ILIKE)"
+            },
+            "required": false,
+            "description": "Busqueda parcial por nombre (ILIKE)",
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de contactos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaListaContactos"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 97,
+                      "nombre": "Inmobiliaria Los Andes",
+                      "telefono": "+57 601 555 0123",
+                      "direccion": "Calle 10 # 20-30, Bogota",
+                      "correo": "contacto@losandes.example"
+                    }
+                  ],
+                  "meta": {
+                    "page": 1,
+                    "limit": 20,
+                    "total": 1,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contactos"
+        ],
+        "summary": "Crea o reutiliza un contacto",
+        "description": "Requiere sesion. Busca un contacto con los MISMOS cuatro valores (NULL = NULL, igual que el UNIQUE `NULLS NOT DISTINCT`); si no existe lo crea. Responde **201** con el contacto nuevo y **200** si ya existia. El correo se normaliza a minusculas.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150
+                  },
+                  "telefono": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50
+                  },
+                  "direccion": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200
+                  },
+                  "correo": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 254,
+                    "format": "email"
+                  }
+                },
+                "required": [
+                  "nombre"
+                ],
+                "additionalProperties": false
+              },
+              "example": {
+                "nombre": "Inmobiliaria Los Andes",
+                "telefono": "+57 601 555 0123",
+                "direccion": "Calle 10 # 20-30, Bogota",
+                "correo": "contacto@losandes.example"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "El contacto ya existia; se devuelve el mismo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaContacto"
+                },
+                "example": {
+                  "contacto": {
+                    "id": 97,
+                    "nombre": "Inmobiliaria Los Andes",
+                    "telefono": "+57 601 555 0123",
+                    "direccion": "Calle 10 # 20-30, Bogota",
+                    "correo": "contacto@losandes.example"
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Contacto creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaContacto"
+                },
+                "example": {
+                  "contacto": {
+                    "id": 97,
+                    "nombre": "Inmobiliaria Los Andes",
+                    "telefono": "+57 601 555 0123",
+                    "direccion": "Calle 10 # 20-30, Bogota",
+                    "correo": "contacto@losandes.example"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contactos/{id}": {
+      "get": {
+        "tags": [
+          "Contactos"
+        ],
+        "summary": "Obtiene un contacto",
+        "description": "Requiere sesion. 404 `CONTACTO_NO_ENCONTRADO` si no existe.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contacto encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaContacto"
+                },
+                "example": {
+                  "contacto": {
+                    "id": 97,
+                    "nombre": "Inmobiliaria Los Andes",
+                    "telefono": "+57 601 555 0123",
+                    "direccion": "Calle 10 # 20-30, Bogota",
+                    "correo": "contacto@losandes.example"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Contactos"
+        ],
+        "summary": "Actualiza un contacto (solo admin)",
+        "description": "Solo admin. Un contacto lo comparten muchos inmuebles: al editarlo cambia en todos. Los campos opcionales se vacian con `null`. Si el resultado coincide con otro contacto existente responde 409 `CONTACTO_DUPLICADO`.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "telefono": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50
+                  },
+                  "direccion": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200
+                  },
+                  "correo": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 254,
+                    "format": "email"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "telefono": "+57 601 555 9999"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contacto actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaContacto"
+                },
+                "example": {
+                  "contacto": {
+                    "id": 97,
+                    "nombre": "Inmobiliaria Los Andes",
+                    "telefono": "+57 601 555 9999",
+                    "direccion": "Calle 10 # 20-30, Bogota",
+                    "correo": "contacto@losandes.example"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Contactos"
+        ],
+        "summary": "Elimina un contacto (solo admin)",
+        "description": "Solo admin. Si algun inmueble lo usa responde 409 `REFERENCIA_INVALIDA` (lo garantiza la FK). 204 sin cuerpo.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Contacto eliminado"
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
             "content": {
               "application/json": {
                 "schema": {
