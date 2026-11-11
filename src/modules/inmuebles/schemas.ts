@@ -1,3 +1,4 @@
+import { imagenPrincipalSchema, imagenPublicaSchema } from '../imagenes/schemas.js';
 import { paginacionCampos } from '../../shared/pagination.js';
 import {
   booleanoOpcional,
@@ -163,6 +164,15 @@ export const inmueblePublicoSchema = z.strictObject({
     .boolean()
     .describe('false = inmueble importado del CSV, sin dueno'),
   es_mio: z.boolean().describe('true si el solicitante autenticado es el dueno'),
+  // Listados y tarjetas: null si el inmueble no tiene fotos.
+  imagen_principal: imagenPrincipalSchema
+    .nullable()
+    .describe('Foto de la tarjeta; null si el inmueble no tiene fotos'),
+});
+
+// El arreglo completo de fotos SOLO va en el detalle (peso en listados).
+export const inmuebleDetalleSchema = inmueblePublicoSchema.extend({
+  imagenes: z.array(imagenPublicaSchema).describe('Fotos ordenadas por orden y luego id'),
 });
 
 export type CrearInmuebleInput = z.infer<typeof crearInmuebleSchema>;
@@ -170,3 +180,4 @@ export type ActualizarInmuebleInput = z.infer<typeof actualizarInmuebleSchema>;
 export type ListarInmueblesQuery = z.infer<typeof listarInmueblesSchema>;
 export type ContactoDTO = z.infer<typeof contactoSchema>;
 export type InmueblePublico = z.infer<typeof inmueblePublicoSchema>;
+export type InmuebleDetalle = z.infer<typeof inmuebleDetalleSchema>;

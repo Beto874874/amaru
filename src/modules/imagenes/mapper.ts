@@ -4,7 +4,12 @@ import type { ImagenPrincipal, ImagenPublica } from './schemas.js';
 
 // El mapper es una funcion pura campo por campo. Las rutas internas NUNCA se
 // exponen: solo se transforman en URLs publicas calculadas al responder.
-export function aImagenPublica(fila: ImagenFila): ImagenPublica {
+type CamposPublicos = Pick<
+  ImagenFila,
+  'id_imagen' | 'ruta' | 'ruta_miniatura' | 'ancho' | 'alto' | 'orden' | 'es_principal'
+>;
+
+export function aImagenPublica(fila: CamposPublicos): ImagenPublica {
   return {
     id: fila.id_imagen,
     url: urlPublica(fila.ruta),

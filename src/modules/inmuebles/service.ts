@@ -1,3 +1,4 @@
+import * as storage from '../../infra/storage.js';
 import {
   BadRequestError,
   ForbiddenError,
@@ -9,11 +10,12 @@ import {
   construirMeta,
   type RespuestaPaginada,
 } from '../../shared/pagination.js';
-import { aInmueblePublico } from './mapper.js';
+import { aInmuebleDetalle, aInmueblePublico } from './mapper.js';
 import * as repo from './repository.js';
 import type {
   ActualizarInmuebleInput,
   CrearInmuebleInput,
+  InmuebleDetalle,
   InmueblePublico,
   ListarInmueblesQuery,
 } from './schemas.js';
@@ -257,15 +259,25 @@ export async function eliminar(usuario: UsuarioSolicitante, id: number): Promise
     throw new NotFoundError('INMUEBLE_NO_ENCONTRADO', 'El inmueble no existe');
   }
   verificarPropiedad(fila, usuario);
-  await repo.eliminarInmueble(id);
+
+  // La base borra las filas por CASCADE, pero Storage no se entera: se leen
+  // las rutas ANTES y se limpian DESPUES de confirmar (best effort).
+  const imagenes = await repo.listarImagenesPorInmueble(id);
+  const borrado = await repo.eliminarInmueble(id);
+
+  if (borrado && imagenes.length > 0) {
+    await storage.eliminar(imagenes.flatMap((imagen) => [imagen.ruta, imagen.ruta_miniatura]));
+  }
 }
 
-export async function obtener(id: number, usuarioId?: number): Promise<InmueblePublico> {
+export async function obtener(id: number, usuarioId?: number): Promise<InmuebleDetalle> {
   const fila = await repo.buscarPorId(id);
   if (!fila) {
     throw new NotFoundError('INMUEBLE_NO_ENCONTRADO', 'El inmueble no existe');
   }
-  return aInmueblePublico(fila, usuarioId);
+
+  const imagenes = await repo.listarImagenesPorInmueble(id);
+  return aInmuebleDetalle(fila, imagenes, usuarioId);
 }
 
 export async function listar(

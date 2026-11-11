@@ -16,6 +16,7 @@ vi.mock('../../src/modules/inmuebles/repository.js', () => ({
   listarNombresDepartamentos: vi.fn(),
   crearInmueble: vi.fn(),
   buscarPorId: vi.fn(),
+  listarImagenesPorInmueble: vi.fn(),
   actualizarInmueble: vi.fn(),
   eliminarInmueble: vi.fn(),
   listar: vi.fn(),
@@ -50,6 +51,8 @@ function fila(overrides: Partial<repo.InmuebleConRelaciones> = {}): repo.Inmuebl
     contacto_telefono: null,
     contacto_direccion: null,
     contacto_correo: null,
+    imagen_principal_ruta: null,
+    imagen_principal_ruta_miniatura: null,
     ...overrides,
   };
 }
@@ -82,6 +85,7 @@ beforeEach(() => {
     idDepartamento: 3,
   });
   vi.mocked(repo.crearInmueble).mockResolvedValue(fila());
+  vi.mocked(repo.listarImagenesPorInmueble).mockResolvedValue([]);
   vi.mocked(repo.actualizarInmueble).mockResolvedValue(fila());
   vi.mocked(repo.eliminarInmueble).mockResolvedValue(true);
   vi.mocked(repo.listar).mockResolvedValue({ filas: [fila()], total: 1 });

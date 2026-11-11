@@ -1,5 +1,6 @@
-import type { InmuebleConRelaciones } from './repository.js';
-import type { InmueblePublico } from './schemas.js';
+import { aImagenPrincipal, aImagenPublica } from '../imagenes/mapper.js';
+import type { InmuebleConRelaciones, ImagenDeInmueble } from './repository.js';
+import type { InmuebleDetalle, InmueblePublico } from './schemas.js';
 
 /**
  * Convierte la fila de base (con joins) al DTO publico de 9.7.
@@ -10,6 +11,9 @@ export function aInmueblePublico(
   fila: InmuebleConRelaciones,
   usuarioId?: number,
 ): InmueblePublico {
+  const rutaPrincipal = fila.imagen_principal_ruta;
+  const rutaMiniaturaPrincipal = fila.imagen_principal_ruta_miniatura;
+
   return {
     id: fila.id_inmueble,
     codigo_sae: fila.codigo_sae,
@@ -41,5 +45,24 @@ export function aInmueblePublico(
           },
     publicado_por_usuario: fila.id_usuario !== null,
     es_mio: usuarioId !== undefined && fila.id_usuario === usuarioId,
+    imagen_principal:
+      rutaPrincipal !== null && rutaMiniaturaPrincipal !== null
+        ? aImagenPrincipal({
+            ruta: rutaPrincipal,
+            ruta_miniatura: rutaMiniaturaPrincipal,
+          })
+        : null,
+  };
+}
+
+/** DTO del detalle: el inmueble publico mas el arreglo completo de fotos. */
+export function aInmuebleDetalle(
+  fila: InmuebleConRelaciones,
+  imagenes: ImagenDeInmueble[],
+  usuarioId?: number,
+): InmuebleDetalle {
+  return {
+    ...aInmueblePublico(fila, usuarioId),
+    imagenes: imagenes.map(aImagenPublica),
   };
 }

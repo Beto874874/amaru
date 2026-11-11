@@ -1,6 +1,13 @@
 import { and, asc, count, desc, eq, gte, ilike, isNull, lte, or, type SQL } from 'drizzle-orm';
 import { db } from '../../config/db.js';
-import { ciudad, contacto, departamento, inmueble, tipoInmueble } from '../../db/schema/index.js';
+import {
+  ciudad,
+  contacto,
+  departamento,
+  inmueble,
+  inmuebleImagen,
+  tipoInmueble,
+} from '../../db/schema/index.js';
 import { escaparLike } from '../../shared/sql.js';
 import type { EstadoInmueble } from './schemas.js';
 
@@ -37,6 +44,11 @@ const seleccion = {
   contacto_telefono: contacto.telefono,
   contacto_direccion: contacto.direccion,
   contacto_correo: contacto.correo,
+  // La foto principal entra en la MISMA consulta (LEFT JOIN a la fila
+  // es_principal). El indice unico parcial garantiza que haya como maximo una,
+  // asi que el listado no necesita una consulta por inmueble (N+1).
+  imagen_principal_ruta: inmuebleImagen.ruta,
+  imagen_principal_ruta_miniatura: inmuebleImagen.ruta_miniatura,
 } as const;
 
 function consultaBase() {
@@ -52,7 +64,14 @@ function consultaBase() {
         eq(inmueble.id_departamento, ciudad.id_departamento),
       ),
     )
-    .leftJoin(contacto, eq(inmueble.id_contacto, contacto.id_contacto));
+    .leftJoin(contacto, eq(inmueble.id_contacto, contacto.id_contacto))
+    .leftJoin(
+      inmuebleImagen,
+      and(
+        eq(inmueble.id_inmueble, inmuebleImagen.id_inmueble),
+        eq(inmuebleImagen.es_principal, true),
+      ),
+    );
 }
 
 export type InmuebleConRelaciones = Awaited<ReturnType<typeof consultaBase>>[number];
@@ -157,6 +176,38 @@ export async function listar(
 export async function buscarPorId(id: number): Promise<InmuebleConRelaciones | undefined> {
   const filas = await consultaBase().where(eq(inmueble.id_inmueble, id)).limit(1);
   return filas[0];
+}
+
+export interface ImagenDeInmueble {
+  id_imagen: number;
+  ruta: string;
+  ruta_miniatura: string;
+  ancho: number;
+  alto: number;
+  orden: number;
+  es_principal: boolean;
+}
+
+/**
+ * Fotos del detalle, ya ordenadas. Es una SEGUNDA consulta solo para
+ * GET /inmuebles/:id; el listado nunca las trae.
+ */
+export async function listarImagenesPorInmueble(
+  idInmueble: number,
+): Promise<ImagenDeInmueble[]> {
+  return db
+    .select({
+      id_imagen: inmuebleImagen.id_imagen,
+      ruta: inmuebleImagen.ruta,
+      ruta_miniatura: inmuebleImagen.ruta_miniatura,
+      ancho: inmuebleImagen.ancho,
+      alto: inmuebleImagen.alto,
+      orden: inmuebleImagen.orden,
+      es_principal: inmuebleImagen.es_principal,
+    })
+    .from(inmuebleImagen)
+    .where(eq(inmuebleImagen.id_inmueble, idInmueble))
+    .orderBy(asc(inmuebleImagen.orden), asc(inmuebleImagen.id_imagen));
 }
 
 // ---------------------------------------------------------------------------
