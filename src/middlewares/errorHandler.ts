@@ -82,11 +82,18 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
   }
   if (error instanceof MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
-      const grande = new PayloadTooLargeError('El archivo supera el tamano maximo permitido (5 MB)');
+      const grande = new PayloadTooLargeError('El archivo supera el tamano maximo permitido');
       res.status(grande.statusCode).json({ error: { code: grande.code, message: grande.message } });
       return;
     }
-    const malo = new BadRequestError('ARCHIVO_INVALIDO', 'El archivo enviado no es valido');
+    const mensajes: Record<string, string> = {
+      LIMIT_FILE_COUNT: 'Se enviaron demasiados archivos',
+      LIMIT_UNEXPECTED_FILE: 'Campo de archivo no esperado o demasiados archivos',
+    };
+    const malo = new BadRequestError(
+      'ARCHIVO_INVALIDO',
+      mensajes[error.code] ?? 'El archivo enviado no es valido',
+    );
     res.status(malo.statusCode).json({ error: { code: malo.code, message: malo.message } });
     return;
   }

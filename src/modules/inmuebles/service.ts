@@ -76,6 +76,22 @@ function verificarPropiedad(fila: repo.InmuebleConRelaciones, usuario: UsuarioSo
   );
 }
 
+/**
+ * Autorizacion reutilizable (7.2 de la guia de imagenes): 404 si el inmueble no
+ * existe y 403 si el solicitante no es su dueno ni admin. La usan los modulos
+ * que modifican recursos del inmueble (p. ej. imagenes) sin duplicar la regla.
+ */
+export async function asegurarPuedeModificar(
+  usuario: UsuarioSolicitante,
+  idInmueble: number,
+): Promise<void> {
+  const fila = await repo.buscarPorId(idInmueble);
+  if (!fila) {
+    throw new NotFoundError('INMUEBLE_NO_ENCONTRADO', 'El inmueble no existe');
+  }
+  verificarPropiedad(fila, usuario);
+}
+
 // ---------------------------------------------------------------------------
 // Contacto
 // ---------------------------------------------------------------------------
