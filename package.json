@@ -14,6 +14,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "db:pull": "drizzle-kit pull",
     "docs:export": "tsx --env-file=.env src/docs/export.ts",
     "sesiones:limpiar": "tsx --env-file=.env src/scripts/limpiarSesiones.ts"
@@ -54,6 +55,7 @@
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
     "@types/swagger-ui-express": "^4.1.8",
+    "@vitest/coverage-v8": "^5.1.0",
     "dotenv": "^18.0.10",
     "drizzle-kit": "^0.31.11",
     "eslint": "^10.14.0",

@@ -15,6 +15,11 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**/*.ts'],
       exclude: ['src/server.ts', 'src/docs/**', 'src/db/schema/**'],
+      // Meta de la guia (12.3): services y middlewares por encima del 80 %.
+      thresholds: {
+        'src/modules/*/service.ts': { lines: 80, statements: 80 },
+        'src/middlewares/**/*.ts': { lines: 80, statements: 80 },
+      },
     },
   },
 });

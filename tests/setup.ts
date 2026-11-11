@@ -9,6 +9,9 @@ if (hayEnvTest) {
   config({ path: '.env.test' });
 }
 
+// En pruebas los logs estructurados solo añaden ruido a la salida de vitest.
+process.env.LOG_LEVEL = process.env.LOG_LEVEL ?? 'silent';
+
 // Valores ficticios para que las pruebas UNITARIAS puedan importar modulos que
 // validan el entorno, sin necesitar una base de datos.
 if (!process.env.DATABASE_URL) {

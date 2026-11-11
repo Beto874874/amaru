@@ -16,6 +16,12 @@ const envSchema = z
 
     DATABASE_URL: z.string().min(1, 'DATABASE_URL es obligatoria'),
     DIRECT_URL: z.string().min(1, 'DIRECT_URL es obligatoria'),
+    // Supabase exige SSL. Se puede desactivar SOLO para una base local de
+    // pruebas (Postgres en Docker no habla SSL).
+    DB_SSL: z
+      .string()
+      .default('true')
+      .transform((value) => value !== 'false'),
     DB_SSL_CA_PATH: z
       .string()
       .optional()

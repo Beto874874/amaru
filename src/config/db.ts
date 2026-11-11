@@ -10,6 +10,9 @@ import { logger } from './logger.js';
 // tiene un certificado valido, que es lo correcto). Solo en desarrollo se
 // tolera rejectUnauthorized: false, como excepcion documentada por la guia.
 function construirSsl(): pg.PoolConfig['ssl'] {
+  if (!env.DB_SSL) {
+    return undefined;
+  }
   if (env.DB_SSL_CA_PATH) {
     return {
       ca: readFileSync(env.DB_SSL_CA_PATH, 'utf8'),
