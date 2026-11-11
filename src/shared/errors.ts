@@ -71,3 +71,9 @@ export class TooManyRequestsError extends AppError {
     super(429, 'DEMASIADAS_PETICIONES', message);
   }
 }
+
+export class BadGatewayError extends AppError {
+  constructor(message = 'El servicio de almacenamiento no esta disponible') {
+    super(502, 'ALMACENAMIENTO_NO_DISPONIBLE', message);
+  }
+}
