@@ -19,6 +19,7 @@ departamentos, 91 ciudades, 18 tipos de inmueble).
 - [Instalación paso a paso](#instalación-paso-a-paso)
 - [Cadenas de conexión de Supabase](#cadenas-de-conexión-de-supabase)
 - [Variables de entorno](#variables-de-entorno)
+- [Almacenamiento de imágenes](#almacenamiento-de-imágenes)
 - [Scripts npm](#scripts-npm)
 - [Pruebas](#pruebas)
 - [Crear el primer administrador](#crear-el-primer-administrador)
@@ -42,6 +43,9 @@ departamentos, 91 ciudades, 18 tipos de inmueble).
 - **Catálogos** con lectura pública y escritura solo para administradores.
 - **Contactos compartidos** sin duplicados (se buscan o se crean al vuelo).
 - **Importación CSV** transaccional y todo-o-nada, exclusiva de administradores.
+- **Fotos por inmueble** (hasta 10): subida autenticada, re-codificación a WebP
+  en memoria (grande + miniatura), foto principal y orden, con los archivos en
+  Supabase Storage.
 - **Validación estricta** con Zod 4 y mensajes de error en español.
 - **Seguridad**: helmet, CORS con lista explícita, rate limiting, defensa CSRF
   por `Origin`, RLS activado sin políticas en Supabase.
@@ -83,6 +87,10 @@ npm install
    2. `sql/02_carga_csv.sql` — carga de los 1365 inmuebles y catálogos.
    3. `sql/03_usuarios.sql` — `usuario`, `sesion` y la columna
       `inmueble.id_usuario`.
+   4. `sql/04_imagenes.sql` — tabla `inmueble_imagen` (metadatos de las fotos).
+
+> Además, crea en **Supabase Storage** un bucket **público** llamado `inmuebles`
+> (ver [Almacenamiento de imágenes](#almacenamiento-de-imágenes)).
 
 > Los archivos SQL son la **única fuente de verdad** del esquema. Drizzle solo
 > lo espeja en TypeScript con `npm run db:pull`. No se usa `generate`,
@@ -204,6 +212,39 @@ de los campos con problema.
 
 ---
 
+## Almacenamiento de imágenes
+
+Las fotos no se guardan en Postgres ni en el disco del servidor: los archivos
+viven en **Supabase Storage** y la base solo guarda rutas y metadatos.
+
+1. En el dashboard de Supabase, abre **Storage** y crea un bucket **público**
+   llamado `inmuebles` (o el nombre que pongas en `SUPABASE_BUCKET`).
+2. Ejecuta `sql/04_imagenes.sql` en el SQL Editor después de `01`, `02` y `03`.
+   Crea la tabla `inmueble_imagen` con sus índices y restricciones.
+3. Configura en `.env`:
+   - `SUPABASE_URL`: URL del proyecto.
+   - `SUPABASE_SECRET_KEY`: clave secreta del servidor. **Ignora RLS**: no debe
+     llegar nunca al frontend, a los logs, a las respuestas ni a Git.
+   - `SUPABASE_BUCKET`: nombre del bucket (por defecto `inmuebles`).
+
+Funcionamiento:
+
+- El backend procesa cada imagen **en memoria** con `sharp` y la re-codifica
+  siempre a WebP (esto también elimina EXIF/GPS). El archivo original nunca se
+  guarda.
+- Por cada foto se suben dos archivos:
+  `inmuebles/<id_inmueble>/<uuid>.webp` (grande, máximo 1600 px de ancho) y
+  `inmuebles/<id_inmueble>/<uuid>_m.webp` (miniatura, máximo 480 px).
+- En la base solo se persisten las rutas relativas y los metadatos (ancho, alto,
+  bytes, orden, `es_principal`). La URL pública se calcula al responder, así que
+  cambiar de dominio o proyecto no rompe los datos.
+- Al borrar una foto o un inmueble se eliminan también sus archivos en Storage
+  (mejor esfuerzo). Si esa limpieza falla, pueden quedar **archivos huérfanos**
+  sin fila en la base: son invisibles e inofensivos. Un script de limpieza queda
+  como mejora futura (no está incluido en esta entrega).
+
+---
+
 ## Scripts npm
 
 | Script                  | Comando                                  | Qué hace                                                          |
@@ -219,6 +260,10 @@ de los campos con problema.
 | `npm run db:pull`       | `drizzle-kit pull`                       | Regenera el schema TypeScript desde la base.                      |
 | `npm run docs:export`   | `tsx --env-file=.env src/docs/export.ts` | Regenera `docs/openapi.json` (se versiona).                       |
 | `npm run sesiones:limpiar` | `tsx --env-file=.env src/scripts/limpiarSesiones.ts` | Borra sesiones expiradas o revocadas.              |
+
+Las imágenes no agregan scripts npm: se procesan dentro de la misma API. La
+limpieza de archivos huérfanos en Storage queda como mejora futura (ver
+[Almacenamiento de imágenes](#almacenamiento-de-imágenes)).
 
 ---
 
@@ -358,16 +403,19 @@ amaru/
 ├── sql/
 │   ├── 01_modelo.sql         # tablas, restricciones, índices, RLS
 │   ├── 02_carga_csv.sql      # 1365 inmuebles + catálogos
-│   └── 03_usuarios.sql       # usuario, sesion, inmueble.id_usuario
+│   ├── 03_usuarios.sql       # usuario, sesion, inmueble.id_usuario
+│   └── 04_imagenes.sql       # tabla inmueble_imagen (fotos)
 ├── src/
 │   ├── config/               # env validado, pool de Postgres, logger
 │   ├── db/schema/            # schema Drizzle espejo (generado con pull)
 │   ├── docs/                 # OpenAPI, registry y export a docs/openapi.json
-│   ├── middlewares/          # auth, roles, validación, errores, rate limit, CSV
+│   ├── infra/                # adaptador de Supabase Storage
+│   ├── middlewares/          # auth, roles, validación, errores, rate limit, archivos
 │   ├── modules/
 │   │   ├── auth/             # registro, login, refresh, logout, perfil
 │   │   ├── catalogos/        # departamentos, ciudades, tipos de inmueble
 │   │   ├── contactos/        # contactos compartidos
+│   │   ├── imagenes/         # subida, orden y borrado de fotos
 │   │   ├── importacion/      # importación CSV (admin)
 │   │   ├── inmuebles/        # CRUD y consulta pública
 │   │   └── sistema/          # /health

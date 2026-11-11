@@ -16,6 +16,8 @@ const RUTAS_ESPERADAS = [
   '/auth/password',
   '/inmuebles',
   '/inmuebles/{id}',
+  '/inmuebles/{id}/imagenes',
+  '/inmuebles/{id}/imagenes/{idImagen}',
   '/departamentos',
   '/departamentos/{id}',
   '/ciudades',

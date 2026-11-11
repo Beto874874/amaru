@@ -3,6 +3,7 @@ import { registry } from '../../docs/registry.js';
 import { z } from '../../shared/zod.js';
 import {
   contactoSchema,
+  inmuebleDetalleSchema,
   inmueblePublicoSchema,
   listarInmueblesBaseSchema,
   crearInmuebleSchema,
@@ -14,10 +15,16 @@ import {
 // Contacto se registra aparte porque la Fase 5 lo reutiliza.
 registry.register('Contacto', contactoSchema);
 const inmuebleRegistrado = registry.register('Inmueble', inmueblePublicoSchema);
+const inmuebleDetalleRegistrado = registry.register('InmuebleDetalle', inmuebleDetalleSchema);
 
 const respuestaInmuebleSchema = registry.register(
   'RespuestaInmueble',
   z.strictObject({ inmueble: inmuebleRegistrado }),
+);
+
+const respuestaInmuebleDetalleSchema = registry.register(
+  'RespuestaInmuebleDetalle',
+  z.strictObject({ inmueble: inmuebleDetalleRegistrado }),
 );
 
 const respuestaListaInmueblesSchema = registry.register(
@@ -33,6 +40,22 @@ const EJEMPLO_CONTACTO = {
   telefono: '+57 601 555 0123',
   direccion: 'Calle 10 # 20-30, Bogota',
   correo: 'contacto@losandes.example',
+};
+
+const EJEMPLO_IMAGEN = {
+  id: 12,
+  url: 'https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41.webp',
+  miniatura_url:
+    'https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41_m.webp',
+  ancho: 1600,
+  alto: 900,
+  orden: 0,
+  es_principal: true,
+};
+
+const EJEMPLO_IMAGEN_PRINCIPAL = {
+  url: EJEMPLO_IMAGEN.url,
+  miniatura_url: EJEMPLO_IMAGEN.miniatura_url,
 };
 
 const EJEMPLO_INMUEBLE = {
@@ -58,6 +81,12 @@ const EJEMPLO_INMUEBLE = {
   contacto: EJEMPLO_CONTACTO,
   publicado_por_usuario: true,
   es_mio: false,
+  imagen_principal: EJEMPLO_IMAGEN_PRINCIPAL,
+};
+
+const EJEMPLO_DETALLE = {
+  ...EJEMPLO_INMUEBLE,
+  imagenes: [EJEMPLO_IMAGEN],
 };
 
 const EJEMPLO_LISTA = {
@@ -80,7 +109,8 @@ registry.registerPath({
     '`nombre_inmueble` y `direccion` escapando los comodines de LIKE. El orden siempre ' +
     'agrega `id_inmueble` como desempate para que la paginacion sea estable. Con sesion, ' +
     'cada inmueble incluye `es_mio`; `mias=true` exige sesion (401 si no hay) y filtra por ' +
-    'el usuario del token.',
+    'el usuario del token. Cada inmueble incluye `imagen_principal` (o `null` si no tiene ' +
+    'fotos): el arreglo completo de fotos solo se envia en el detalle.',
   security: [],
   request: {
     query: listarInmueblesBaseSchema,
@@ -109,16 +139,18 @@ registry.registerPath({
   summary: 'Obtiene el detalle de un inmueble',
   description:
     'Publico. El `id` debe ser un entero positivo (400 si no). Si no existe responde 404 ' +
-    '`INMUEBLE_NO_ENCONTRADO`. Con sesion, `es_mio` indica si el solicitante es el dueno.',
+    '`INMUEBLE_NO_ENCONTRADO`. Con sesion, `es_mio` indica si el solicitante es el dueno. ' +
+    'Incluye `imagen_principal` y el arreglo `imagenes` con TODAS las fotos del inmueble, ' +
+    'ordenadas por `orden` y luego por `id` (vacio si no tiene).',
   security: [],
   request: { params: z.strictObject({ id: z.coerce.number().int().positive() }) },
   responses: {
     200: {
-      description: 'Detalle del inmueble',
+      description: 'Detalle del inmueble con todas sus fotos',
       content: {
         'application/json': {
-          schema: respuestaInmuebleSchema,
-          example: { inmueble: EJEMPLO_INMUEBLE },
+          schema: respuestaInmuebleDetalleSchema,
+          example: { inmueble: EJEMPLO_DETALLE },
         },
       },
     },

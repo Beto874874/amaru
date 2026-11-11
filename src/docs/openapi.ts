@@ -8,6 +8,7 @@ import './components.js';
 import '../modules/sistema/sistema.openapi.js';
 import '../modules/auth/auth.openapi.js';
 import '../modules/inmuebles/inmuebles.openapi.js';
+import '../modules/imagenes/imagenes.openapi.js';
 import '../modules/catalogos/catalogos.openapi.js';
 import '../modules/contactos/contactos.openapi.js';
 import '../modules/importacion/importacion.openapi.js';
@@ -61,6 +62,10 @@ export const TAGS = [
   { name: 'Sistema', description: 'Estado del API y de la base de datos' },
   { name: 'Auth', description: 'Registro, login, refresh, logout y perfil propio' },
   { name: 'Inmuebles', description: 'Consulta publica y publicacion autenticada de inmuebles' },
+  {
+    name: 'Imagenes',
+    description: 'Fotos de los inmuebles: subida, foto principal, orden y borrado',
+  },
   { name: 'Catalogos', description: 'Departamentos, ciudades y tipos de inmueble' },
   { name: 'Contactos', description: 'Contactos/inmobiliarias que publican inmuebles' },
   { name: 'Importacion', description: 'Carga masiva de inmuebles por CSV (solo admin)' },

@@ -222,6 +222,8 @@ Todos los errores usan el mismo formato:
 | `SIN_CAMBIOS`                  | 400  | El PATCH no trae ningún campo a modificar.                                          |
 | `ARCHIVO_REQUERIDO`            | 400  | Falta el archivo CSV en el campo `archivo`.                                         |
 | `ARCHIVO_INVALIDO`             | 400  | El archivo no es un CSV válido.                                                     |
+| `IMAGEN_REQUERIDA`             | 400  | No se envió ningún archivo en el campo `imagenes`.                                  |
+| `IMAGEN_INVALIDA`              | 400  | El archivo no es una imagen JPEG, PNG o WebP válida. Revisar el archivo.            |
 | `CSV_INVALIDO`                 | 400  | El CSV no tiene las columnas obligatorias o está mal formado.                       |
 | `CSV_VACIO`                    | 400  | El CSV no tiene filas de datos.                                                     |
 | `TIPO_INVALIDO`                | 400  | El `tipo_inmueble` no existe en el catálogo.                                        |
@@ -237,6 +239,7 @@ Todos los errores usan el mismo formato:
 | `USUARIO_DESACTIVADO`          | 403  | La cuenta está desactivada. Contactar al administrador.                             |
 | `ORIGEN_NO_PERMITIDO`          | 403  | El origen del front no está en `CORS_ORIGINS`. Revisar configuración.               |
 | `INMUEBLE_NO_ENCONTRADO`       | 404  | El inmueble no existe (o fue borrado).                                             |
+| `IMAGEN_NO_ENCONTRADA`         | 404  | La imagen no existe en ese inmueble.                                               |
 | `CONTACTO_NO_ENCONTRADO`       | 404  | El contacto no existe.                                                              |
 | `DEPARTAMENTO_NO_ENCONTRADO`   | 404  | El departamento no existe.                                                          |
 | `CIUDAD_NO_ENCONTRADA`         | 404  | La ciudad no existe.                                                                |
@@ -249,10 +252,12 @@ Todos los errores usan el mismo formato:
 | `TIPO_DUPLICADO`               | 409  | Ya existe ese tipo de inmueble.                                                     |
 | `REGISTRO_DUPLICADO`           | 409  | Ya existe un registro con esos datos.                                               |
 | `REFERENCIA_INVALIDA`          | 409  | El registro está en uso (por ejemplo, borrar un contacto/catálogo con inmuebles).   |
-| `PAYLOAD_DEMASIADO_GRANDE`     | 413  | El cuerpo o el archivo supera el límite (JSON 100 KB, CSV 5 MB).                    |
+| `LIMITE_IMAGENES`              | 409  | El inmueble ya tiene el máximo de 10 fotos. Borrar alguna antes de subir más.       |
+| `PAYLOAD_DEMASIADO_GRANDE`     | 413  | El cuerpo o el archivo supera el límite (JSON 100 KB, CSV 5 MB, imagen 10 MB).      |
 | `IMPORTACION_INVALIDA`         | 422  | Hay filas inválidas en el CSV. Ver `details[]` (`fila`, `campo`, `mensaje`).         |
 | `DEMASIADAS_PETICIONES`        | 429  | Límite de peticiones alcanzado. Esperar y reintentar.                               |
 | `ERROR_INTERNO`                | 500  | Error inesperado. Mostrar mensaje genérico y registrar `request id`.                |
+| `ALMACENAMIENTO_NO_DISPONIBLE` | 502  | Falló Supabase Storage al guardar la foto. Reintentar más tarde.                    |
 | `BASE_DE_DATOS_NO_DISPONIBLE`  | 503  | La base no responde. Reintentar más tarde o mostrar estado de mantenimiento.        |
 
 Los límites de peticiones son: 300 peticiones / 15 min en general, 10 / 15 min
@@ -324,8 +329,9 @@ GET /api/v1/inmuebles/{id}
 ```
 
 Responde `200 { "inmueble": { ... } }`. Si el visitante está autenticado, cada
-inmueble incluye `es_mio` (`true` si le pertenece). El DTO **nunca** expone el
-`id_usuario` ni el email del dueño.
+inmueble incluye `es_mio` (`true` si le pertenece). El detalle agrega el arreglo
+`imagenes` con todas las fotos (ver [Imágenes](#8-imágenes-de-los-inmuebles)).
+El DTO **nunca** expone el `id_usuario` ni el email del dueño.
 
 ---
 
@@ -403,7 +409,110 @@ con `details[]` y no inserta ninguna fila.
 
 ---
 
-## 8. Contactos (uso interno)
+## 8. Imágenes de los inmuebles
+
+Cada inmueble puede tener hasta **10 fotos**. El backend las procesa y guarda
+siempre en WebP: una **imagen grande** (máximo 1600 px de ancho) para el detalle
+y una **miniatura** (máximo 480 px) para listados y tarjetas. Las URLs son
+públicas y estables: se pueden usar directo en `<img src="...">` sin
+credenciales.
+
+### 8.1 Qué trae cada respuesta
+
+- `GET /inmuebles` y `GET /inmuebles/{id}` incluyen
+  `imagen_principal: { url, miniatura_url } | null`. Es `null` si el inmueble no
+  tiene fotos; en ese caso muestra un placeholder.
+- `GET /inmuebles/{id}` agrega `imagenes: ImagenPublica[]`, ordenado por `orden`
+  y luego por `id`. El listado **no** envía el arreglo completo (peso).
+
+Cada elemento de `imagenes` tiene esta forma:
+
+| Campo           | Tipo    | Uso                                                |
+| --------------- | ------- | -------------------------------------------------- |
+| `id`            | entero  | Identificador para `PATCH`/`DELETE`.               |
+| `url`           | string  | Foto grande para la página de detalle.             |
+| `miniatura_url` | string  | Miniatura para tarjetas y listados (más liviana).  |
+| `ancho`         | entero  | Ancho de la foto grande en píxeles.                |
+| `alto`          | entero  | Alto de la foto grande en píxeles.                 |
+| `orden`         | entero  | Posición dentro del inmueble.                      |
+| `es_principal`  | boolean | `true` en la foto que se muestra como portada.     |
+
+### 8.2 Subir fotos
+
+```text
+POST /api/v1/inmuebles/{id}/imagenes
+Content-Type: multipart/form-data
+Campo: imagenes (1 a 5 archivos)
+```
+
+Requiere sesión y ser el dueño del inmueble o un admin.
+
+```ts
+const form = new FormData();
+archivos.forEach((archivo) => form.append('imagenes', archivo));
+
+const respuesta = await fetch(`${API}/inmuebles/${id}/imagenes`, {
+  method: 'POST',
+  body: form,
+  credentials: 'include',
+});
+
+if (respuesta.status === 201) {
+  const { data } = await respuesta.json(); // ImagenPublica[]
+}
+```
+
+> **No fijes el header `Content-Type` a mano.** El navegador debe generarlo con
+> el `boundary` del multipart. Con axios pasa lo mismo: no envíes
+> `'Content-Type': 'multipart/form-data'`; deja que la librería lo haga.
+
+Límites:
+
+- 1 a 5 archivos por petición.
+- 10 fotos por inmueble (`409 LIMITE_IMAGENES` si se supera).
+- 10 MB por archivo (`413 PAYLOAD_DEMASIADO_GRANDE`).
+- Solo JPEG, PNG o WebP. La validación real es por **contenido**, no por la
+  extensión ni por el `Content-Type`.
+- 30 subidas cada 15 minutos por usuario (`429 DEMASIADAS_PETICIONES`).
+
+La operación es **todo o nada**: si una foto falla, no se guarda ninguna y la
+respuesta indica la posición del archivo inválido.
+
+### 8.3 Cambiar la foto principal y el orden
+
+```text
+PATCH /api/v1/inmuebles/{id}/imagenes/{idImagen}
+{ "es_principal": true }        // o { "orden": 3 }, o ambos
+```
+
+- `es_principal` solo acepta `true`. Para quitar la principal, marca otra foto.
+- `orden` es el orden final que quieres; no tiene que ser consecutivo.
+- Responde `200 { "imagen": ImagenPublica }`.
+
+### 8.4 Borrar una foto
+
+```text
+DELETE /api/v1/inmuebles/{id}/imagenes/{idImagen}  -> 204
+```
+
+Si la foto borrada era la principal y quedan más, el servidor promueve la de
+menor `orden` (desempate por `id`). Recuerda actualizar la UI con la respuesta
+del siguiente `GET /inmuebles/{id}`.
+
+### 8.5 Errores de imágenes
+
+| Código                         | HTTP | Acción sugerida                                                  |
+| ------------------------------ | ---- | ---------------------------------------------------------------- |
+| `IMAGEN_REQUERIDA`             | 400  | No se adjuntó ningún archivo; revisar el `FormData`.             |
+| `IMAGEN_INVALIDA`              | 400  | El archivo no es JPEG/PNG/WebP válido; mostrar cuál falló.       |
+| `LIMITE_IMAGENES`              | 409  | Ya hay 10 fotos; borrar alguna antes de subir más.               |
+| `IMAGEN_NO_ENCONTRADA`         | 404  | La foto no existe en ese inmueble; recargar el detalle.          |
+| `PAYLOAD_DEMASIADO_GRANDE`     | 413  | El archivo supera 10 MB; comprimirlo o reducirlo antes de subir. |
+| `ALMACENAMIENTO_NO_DISPONIBLE` | 502  | Falló el servicio de archivos; reintentar más tarde.             |
+
+---
+
+## 9. Contactos (uso interno)
 
 Requieren sesión.
 
@@ -420,7 +529,7 @@ En general, al publicar un inmueble basta con enviar los campos
 
 ---
 
-## 9. Permisos y estados
+## 10. Permisos y estados
 
 ### Quién puede qué
 
@@ -430,6 +539,7 @@ En general, al publicar un inmueble basta con enviar los campos
 | `GET /inmuebles?mias=true`                          |    No     |   Sí    |  Sí   |
 | `POST /inmuebles`                                   |    No     |   Sí    |  Sí   |
 | `PATCH` / `DELETE /inmuebles/{id}`                  |    No     |  Solo si es el dueño | Sí (cualquiera) |
+| Subir, ordenar o borrar fotos de un inmueble        |    No     |  Solo si es el dueño | Sí (cualquiera) |
 | Inmuebles importados o del CSV (`id_usuario NULL`)  |    No     |   No    |  Sí   |
 | `GET` catálogos                                     |    Sí     |   Sí    |  Sí   |
 | Escribir catálogos (`POST`/`PATCH`/`DELETE`)        |    No     |   No    |  Sí   |
@@ -454,7 +564,7 @@ Disponible | Arrendado | No disponible
 
 ---
 
-## 10. Resumen de rutas
+## 11. Resumen de rutas
 
 Rutas relativas a la URL base (`/api/v1`).
 
@@ -474,6 +584,9 @@ Rutas relativas a la URL base (`/api/v1`).
 | `POST`   | `/inmuebles`                      | Sesión      |
 | `PATCH`  | `/inmuebles/{id}`                 | Dueño/Admin |
 | `DELETE` | `/inmuebles/{id}`                 | Dueño/Admin |
+| `POST`   | `/inmuebles/{id}/imagenes`        | Dueño/Admin |
+| `PATCH`  | `/inmuebles/{id}/imagenes/{idImagen}` | Dueño/Admin |
+| `DELETE` | `/inmuebles/{id}/imagenes/{idImagen}` | Dueño/Admin |
 | `GET`    | `/departamentos`                  | Público     |
 | `POST`   | `/departamentos`                  | Admin       |
 | `PATCH`  | `/departamentos/{id}`             | Admin       |

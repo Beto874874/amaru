@@ -113,4 +113,8 @@ export const respuestasError = {
     description: 'Error inesperado del servidor (el detalle solo queda en los logs)',
     content: { 'application/json': { schema: referenciaError } },
   },
+  502: {
+    description: 'El servicio de almacenamiento de archivos no esta disponible',
+    content: { 'application/json': { schema: referenciaError } },
+  },
 } as const;

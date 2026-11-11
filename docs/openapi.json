@@ -25,6 +25,10 @@
       "description": "Consulta publica y publicacion autenticada de inmuebles"
     },
     {
+      "name": "Imagenes",
+      "description": "Fotos de los inmuebles: subida, foto principal, orden y borrado"
+    },
+    {
       "name": "Catalogos",
       "description": "Departamentos, ciudades y tipos de inmueble"
     },
@@ -386,6 +390,28 @@
           "es_mio": {
             "type": "boolean",
             "description": "true si el solicitante autenticado es el dueno"
+          },
+          "imagen_principal": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "URL publica de la imagen grande"
+              },
+              "miniatura_url": {
+                "type": "string",
+                "description": "URL publica de la miniatura para listados"
+              }
+            },
+            "required": [
+              "url",
+              "miniatura_url"
+            ],
+            "additionalProperties": false,
+            "description": "Foto de la tarjeta; null si el inmueble no tiene fotos"
           }
         },
         "required": [
@@ -410,7 +436,232 @@
           "fecha_publicacion",
           "contacto",
           "publicado_por_usuario",
-          "es_mio"
+          "es_mio",
+          "imagen_principal"
+        ],
+        "additionalProperties": false
+      },
+      "InmuebleDetalle": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "codigo_sae": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "departamento": {
+            "type": "string"
+          },
+          "ciudad": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "estrato": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "valor_arriendo": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "area_terreno": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "area_construida": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "mas_admon": {
+            "type": "boolean"
+          },
+          "en_home": {
+            "type": "boolean"
+          },
+          "iva": {
+            "type": "boolean"
+          },
+          "pagina_web": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "Disponible",
+              "Arrendado",
+              "No disponible"
+            ]
+          },
+          "ubicacion_inferida": {
+            "type": "boolean"
+          },
+          "alertas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fecha_publicacion": {
+            "type": "string",
+            "description": "ISO 8601 en UTC"
+          },
+          "contacto": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "nombre": {
+                "type": "string"
+              },
+              "telefono": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "direccion": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "correo": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "nombre",
+              "telefono",
+              "direccion",
+              "correo"
+            ],
+            "additionalProperties": false
+          },
+          "publicado_por_usuario": {
+            "type": "boolean",
+            "description": "false = inmueble importado del CSV, sin dueno"
+          },
+          "es_mio": {
+            "type": "boolean",
+            "description": "true si el solicitante autenticado es el dueno"
+          },
+          "imagen_principal": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "URL publica de la imagen grande"
+              },
+              "miniatura_url": {
+                "type": "string",
+                "description": "URL publica de la miniatura para listados"
+              }
+            },
+            "required": [
+              "url",
+              "miniatura_url"
+            ],
+            "additionalProperties": false,
+            "description": "Foto de la tarjeta; null si el inmueble no tiene fotos"
+          },
+          "imagenes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "url": {
+                  "type": "string",
+                  "description": "URL publica de la imagen grande (detalle)"
+                },
+                "miniatura_url": {
+                  "type": "string",
+                  "description": "URL publica de la miniatura (listados)"
+                },
+                "ancho": {
+                  "type": "integer"
+                },
+                "alto": {
+                  "type": "integer"
+                },
+                "orden": {
+                  "type": "integer"
+                },
+                "es_principal": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "url",
+                "miniatura_url",
+                "ancho",
+                "alto",
+                "orden",
+                "es_principal"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Fotos ordenadas por orden y luego id"
+          }
+        },
+        "required": [
+          "id",
+          "codigo_sae",
+          "nombre",
+          "tipo",
+          "departamento",
+          "ciudad",
+          "direccion",
+          "estrato",
+          "valor_arriendo",
+          "area_terreno",
+          "area_construida",
+          "mas_admon",
+          "en_home",
+          "iva",
+          "pagina_web",
+          "estado",
+          "ubicacion_inferida",
+          "alertas",
+          "fecha_publicacion",
+          "contacto",
+          "publicado_por_usuario",
+          "es_mio",
+          "imagen_principal",
+          "imagenes"
         ],
         "additionalProperties": false
       },
@@ -419,6 +670,18 @@
         "properties": {
           "inmueble": {
             "$ref": "#/components/schemas/Inmueble"
+          }
+        },
+        "required": [
+          "inmueble"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaInmuebleDetalle": {
+        "type": "object",
+        "properties": {
+          "inmueble": {
+            "$ref": "#/components/schemas/InmuebleDetalle"
           }
         },
         "required": [
@@ -442,6 +705,89 @@
         "required": [
           "data",
           "meta"
+        ],
+        "additionalProperties": false
+      },
+      "ImagenPublica": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL publica de la imagen grande (detalle)"
+          },
+          "miniatura_url": {
+            "type": "string",
+            "description": "URL publica de la miniatura (listados)"
+          },
+          "ancho": {
+            "type": "integer"
+          },
+          "alto": {
+            "type": "integer"
+          },
+          "orden": {
+            "type": "integer"
+          },
+          "es_principal": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "miniatura_url",
+          "ancho",
+          "alto",
+          "orden",
+          "es_principal"
+        ],
+        "additionalProperties": false
+      },
+      "ImagenPrincipal": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL publica de la imagen grande"
+          },
+          "miniatura_url": {
+            "type": "string",
+            "description": "URL publica de la miniatura para listados"
+          }
+        },
+        "required": [
+          "url",
+          "miniatura_url"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaImagen": {
+        "type": "object",
+        "properties": {
+          "imagen": {
+            "$ref": "#/components/schemas/ImagenPublica"
+          }
+        },
+        "required": [
+          "imagen"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaImagenes": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImagenPublica"
+            }
+          }
+        },
+        "required": [
+          "data"
         ],
         "additionalProperties": false
       },
@@ -1394,7 +1740,7 @@
           "Inmuebles"
         ],
         "summary": "Lista inmuebles paginados y filtrados",
-        "description": "Publico. Devuelve solo inmuebles con el estado pedido (por defecto `Disponible`). Los filtros por departamento, ciudad y tipo usan **IDs** (no nombres). `q` busca en `nombre_inmueble` y `direccion` escapando los comodines de LIKE. El orden siempre agrega `id_inmueble` como desempate para que la paginacion sea estable. Con sesion, cada inmueble incluye `es_mio`; `mias=true` exige sesion (401 si no hay) y filtra por el usuario del token.",
+        "description": "Publico. Devuelve solo inmuebles con el estado pedido (por defecto `Disponible`). Los filtros por departamento, ciudad y tipo usan **IDs** (no nombres). `q` busca en `nombre_inmueble` y `direccion` escapando los comodines de LIKE. El orden siempre agrega `id_inmueble` como desempate para que la paginacion sea estable. Con sesion, cada inmueble incluye `es_mio`; `mias=true` exige sesion (401 si no hay) y filtra por el usuario del token. Cada inmueble incluye `imagen_principal` (o `null` si no tiene fotos): el arreglo completo de fotos solo se envia en el detalle.",
         "security": [],
         "parameters": [
           {
@@ -1636,7 +1982,11 @@
                         "correo": "contacto@losandes.example"
                       },
                       "publicado_por_usuario": true,
-                      "es_mio": false
+                      "es_mio": false,
+                      "imagen_principal": {
+                        "url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41.webp",
+                        "miniatura_url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41_m.webp"
+                      }
                     }
                   ],
                   "meta": {
@@ -1895,7 +2245,11 @@
                       "correo": "contacto@losandes.example"
                     },
                     "publicado_por_usuario": true,
-                    "es_mio": false
+                    "es_mio": false,
+                    "imagen_principal": {
+                      "url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41.webp",
+                      "miniatura_url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41_m.webp"
+                    }
                   }
                 }
               }
@@ -1960,7 +2314,7 @@
           "Inmuebles"
         ],
         "summary": "Obtiene el detalle de un inmueble",
-        "description": "Publico. El `id` debe ser un entero positivo (400 si no). Si no existe responde 404 `INMUEBLE_NO_ENCONTRADO`. Con sesion, `es_mio` indica si el solicitante es el dueno.",
+        "description": "Publico. El `id` debe ser un entero positivo (400 si no). Si no existe responde 404 `INMUEBLE_NO_ENCONTRADO`. Con sesion, `es_mio` indica si el solicitante es el dueno. Incluye `imagen_principal` y el arreglo `imagenes` con TODAS las fotos del inmueble, ordenadas por `orden` y luego por `id` (vacio si no tiene).",
         "security": [],
         "parameters": [
           {
@@ -1975,11 +2329,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Detalle del inmueble",
+            "description": "Detalle del inmueble con todas sus fotos",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RespuestaInmueble"
+                  "$ref": "#/components/schemas/RespuestaInmuebleDetalle"
                 },
                 "example": {
                   "inmueble": {
@@ -2009,7 +2363,22 @@
                       "correo": "contacto@losandes.example"
                     },
                     "publicado_por_usuario": true,
-                    "es_mio": false
+                    "es_mio": false,
+                    "imagen_principal": {
+                      "url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41.webp",
+                      "miniatura_url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41_m.webp"
+                    },
+                    "imagenes": [
+                      {
+                        "id": 12,
+                        "url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41.webp",
+                        "miniatura_url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41_m.webp",
+                        "ancho": 1600,
+                        "alto": 900,
+                        "orden": 0,
+                        "es_principal": true
+                      }
+                    ]
                   }
                 }
               }
@@ -2245,7 +2614,11 @@
                       "correo": "contacto@losandes.example"
                     },
                     "publicado_por_usuario": true,
-                    "es_mio": false
+                    "es_mio": false,
+                    "imagen_principal": {
+                      "url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41.webp",
+                      "miniatura_url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41_m.webp"
+                    }
                   }
                 }
               }
@@ -2348,6 +2721,414 @@
         "responses": {
           "204": {
             "description": "Inmueble eliminado"
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inmuebles/{id}/imagenes": {
+      "post": {
+        "tags": [
+          "Imagenes"
+        ],
+        "summary": "Sube fotos a un inmueble",
+        "description": "Requiere sesion. Solo el dueno del inmueble o un admin puede subir fotos; los inmuebles importados del CSV (sin dueno) solo los toca un admin. Recibe `multipart/form-data` en el campo `imagenes` (1 a 5 archivos JPEG/PNG/WebP de maximo 10 MB cada uno). Cada foto se procesa en memoria y se guarda como dos WebP: grande (max 1600 px de ancho) y miniatura (max 480 px). La validacion es por **contenido real**, no por extension ni por el Content-Type declarado. La operacion es **todo o nada**: si un archivo falla no se sube ninguno. Maximo 10 fotos por inmueble. La primera foto de un inmueble sin fotos queda como principal.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "imagenes"
+                ],
+                "properties": {
+                  "imagenes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "De 1 a 5 archivos JPEG, PNG o WebP de maximo 10 MB cada uno. El servidor los re-codifica a WebP."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Fotos creadas (ordenadas por `orden` y luego por `id`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaImagenes"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 12,
+                      "url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41.webp",
+                      "miniatura_url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41_m.webp",
+                      "ancho": 1600,
+                      "alto": 900,
+                      "orden": 0,
+                      "es_principal": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con datos existentes (duplicado, referencia en uso)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "El cuerpo o el archivo supera el limite permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "El servicio de almacenamiento de archivos no esta disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inmuebles/{id}/imagenes/{idImagen}": {
+      "patch": {
+        "tags": [
+          "Imagenes"
+        ],
+        "summary": "Cambia la foto principal o su orden",
+        "description": "Requiere sesion y la misma regla de propiedad que editar el inmueble. Al menos uno de `es_principal` u `orden` es obligatorio. `es_principal` solo acepta `true`: para quitar la principal hay que marcar otra foto. `orden` es el valor final deseado (no tiene que ser consecutivo). Si la imagen no pertenece a ese inmueble responde 404 `IMAGEN_NO_ENCONTRADA` (no revela que exista en otro inmueble).",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "idImagen",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "es_principal": {
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ]
+                  },
+                  "orden": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "es_principal": true,
+                "orden": 0
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Imagen actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaImagen"
+                },
+                "example": {
+                  "imagen": {
+                    "id": 12,
+                    "url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41.webp",
+                    "miniatura_url": "https://<ref>.supabase.co/storage/v1/object/public/inmuebles/inmuebles/98635/2f7c1c0e-5f0a-4b7e-9c1d-3a8f6e2b9d41_m.webp",
+                    "ancho": 1600,
+                    "alto": 900,
+                    "orden": 0,
+                    "es_principal": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Imagenes"
+        ],
+        "summary": "Elimina una foto de un inmueble",
+        "description": "Requiere sesion y la misma regla de propiedad que editar el inmueble. Borra la fila y los dos archivos de Storage (grande y miniatura). Si la foto era la principal y quedan mas, el servidor promueve la de menor `orden` (desempate por `id`). Responde 204 sin cuerpo.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "idImagen",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Imagen eliminada"
           },
           "400": {
             "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
