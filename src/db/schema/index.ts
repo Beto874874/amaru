@@ -5,4 +5,5 @@ export * from './contacto.js';
 export * from './usuario.js';
 export * from './sesion.js';
 export * from './inmueble.js';
+export * from './inmueble-imagen.js';
 export * from './relations.js';

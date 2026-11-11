@@ -187,6 +187,9 @@ de los campos con problema.
 | `DIRECT_URL`         | Sí          | —                      | Cadena que usa `drizzle-kit pull`.                                          |
 | `DB_SSL`             | No          | `true`                 | `false` solo para una base local de pruebas sin SSL.                        |
 | `DB_SSL_CA_PATH`     | No          | vacío                  | Ruta al certificado CA de Supabase.                                         |
+| `SUPABASE_URL`       | Sí          | —                      | URL del proyecto de Supabase (Storage de fotos).                            |
+| `SUPABASE_SECRET_KEY`| Sí          | —                      | Clave secreta de Supabase (≥ 20 caracteres). Nunca se versiona ni se loguea.|
+| `SUPABASE_BUCKET`    | No          | `inmuebles`            | Bucket público donde se guardan las fotos procesadas.                       |
 | `JWT_ACCESS_SECRET`  | Sí          | —                      | Secreto del access token (≥ 32 caracteres).                                 |
 | `JWT_REFRESH_SECRET` | Sí          | —                      | Secreto del refresh token (≥ 32 caracteres, distinto del anterior).         |
 | `ACCESS_TOKEN_TTL`   | No          | `15m`                  | Vida del access token.                                                      |

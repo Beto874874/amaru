@@ -3,6 +3,7 @@ import { ciudad } from './ciudad.js';
 import { contacto } from './contacto.js';
 import { departamento } from './departamento.js';
 import { inmueble } from './inmueble.js';
+import { inmuebleImagen } from './inmueble-imagen.js';
 import { sesion } from './sesion.js';
 import { tipoInmueble } from './tipo-inmueble.js';
 import { usuario } from './usuario.js';
@@ -43,7 +44,8 @@ export const sesionRelations = relations(sesion, ({ one }) => ({
   }),
 }));
 
-export const inmuebleRelations = relations(inmueble, ({ one }) => ({
+export const inmuebleRelations = relations(inmueble, ({ one, many }) => ({
+  imagen: many(inmuebleImagen),
   tipo: one(tipoInmueble, {
     fields: [inmueble.id_tipo],
     references: [tipoInmueble.id_tipo],
@@ -63,5 +65,12 @@ export const inmuebleRelations = relations(inmueble, ({ one }) => ({
   usuario: one(usuario, {
     fields: [inmueble.id_usuario],
     references: [usuario.id_usuario],
+  }),
+}));
+
+export const inmuebleImagenRelations = relations(inmuebleImagen, ({ one }) => ({
+  inmueble: one(inmueble, {
+    fields: [inmuebleImagen.id_inmueble],
+    references: [inmueble.id_inmueble],
   }),
 }));

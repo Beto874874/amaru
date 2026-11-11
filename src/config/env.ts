@@ -27,6 +27,15 @@ const envSchema = z
       .optional()
       .transform((value) => (value && value.trim() !== '' ? value.trim() : undefined)),
 
+    // --- Supabase Storage (solo fotos de inmuebles) ---
+    // La clave secreta JAMAS se imprime: los errores de validacion muestran
+    // solo el nombre del campo, nunca su valor.
+    SUPABASE_URL: z.url('SUPABASE_URL debe ser una URL valida'),
+    SUPABASE_SECRET_KEY: z
+      .string()
+      .min(20, 'SUPABASE_SECRET_KEY debe tener al menos 20 caracteres'),
+    SUPABASE_BUCKET: z.string().min(1).default('inmuebles'),
+
     JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET debe tener al menos 32 caracteres'),
     JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET debe tener al menos 32 caracteres'),
     ACCESS_TOKEN_TTL: duracion.default('15m'),

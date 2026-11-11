@@ -7,6 +7,9 @@ import prettier from 'eslint-config-prettier';
 const MENSAJE_CAPAS =
   'Viola la arquitectura por capas (seccion 5 de la guia): cada capa solo puede usar la inmediatamente inferior.';
 
+const MENSAJE_SUPABASE =
+  'El cliente de Supabase solo puede importarse en src/infra/storage.ts (acceso a Storage encapsulado).';
+
 export default tseslint.config(
   {
     ignores: ['dist/**', 'node_modules/**', 'coverage/**', '.drizzle-pull/**', 'docs/**'],
@@ -50,6 +53,19 @@ export default tseslint.config(
     rules: { 'no-restricted-properties': 'off' },
   },
   {
+    // El SDK de Supabase queda encapsulado en el adaptador de infraestructura.
+    files: ['src/**/*.ts'],
+    ignores: ['src/infra/storage.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [{ group: ['@supabase/supabase-js'], message: MENSAJE_SUPABASE }],
+        },
+      ],
+    },
+  },
+  {
     // CONTROLLER: solo service, schemas y tipos. Nunca repository ni db.
     files: ['src/modules/*/controller.ts'],
     rules: {
@@ -60,6 +76,7 @@ export default tseslint.config(
             { group: ['drizzle-orm', 'drizzle-orm/*'], message: MENSAJE_CAPAS },
             { group: ['**/config/db.js', '**/db/schema/**'], message: MENSAJE_CAPAS },
             { group: ['../*/repository.js', '**/modules/*/repository.js'], message: MENSAJE_CAPAS },
+            { group: ['@supabase/supabase-js'], message: MENSAJE_SUPABASE },
           ],
         },
       ],
@@ -77,6 +94,7 @@ export default tseslint.config(
             { group: ['drizzle-orm', 'drizzle-orm/*'], message: MENSAJE_CAPAS },
             { group: ['**/config/db.js'], message: MENSAJE_CAPAS },
             { group: ['../*/repository.js', '**/modules/*/repository.js'], message: MENSAJE_CAPAS },
+            { group: ['@supabase/supabase-js'], message: MENSAJE_SUPABASE },
           ],
         },
       ],
@@ -93,6 +111,7 @@ export default tseslint.config(
             { group: ['express', 'express/*', '**/middlewares/**'], message: MENSAJE_CAPAS },
             { group: ['../*/service.js', '**/modules/*/service.js'], message: MENSAJE_CAPAS },
             { group: ['**/*controller.js'], message: MENSAJE_CAPAS },
+            { group: ['@supabase/supabase-js'], message: MENSAJE_SUPABASE },
           ],
         },
       ],

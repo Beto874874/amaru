@@ -25,6 +25,14 @@ if (!process.env.DATABASE_URL) {
   process.env.DOCS_ENABLED = 'true';
 }
 
+// Valores ficticios de Storage: las pruebas unitarias deben poder importar
+// modulos que validan el entorno sin tocar Supabase real. Si .env.test ya los
+// define, se respetan.
+process.env.SUPABASE_URL = process.env.SUPABASE_URL ?? 'https://test.supabase.co';
+process.env.SUPABASE_SECRET_KEY =
+  process.env.SUPABASE_SECRET_KEY ?? 'test-supabase-secret-key-ficticia';
+process.env.SUPABASE_BUCKET = process.env.SUPABASE_BUCKET ?? 'inmuebles-test';
+
 // Guard de seguridad: si hay base de pruebas configurada, su host debe estar
 // declarado en TEST_DB_HOST_ALLOWED. Asi un .env.test mal copiado (con la base
 // real) aborta en vez de borrar datos de produccion.
