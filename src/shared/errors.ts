@@ -5,6 +5,8 @@
 export interface DetalleValidacion {
   campo: string;
   mensaje: string;
+  /** Numero de fila fisica del archivo CSV (solo en la importacion masiva). */
+  fila?: number;
 }
 
 export class AppError extends Error {

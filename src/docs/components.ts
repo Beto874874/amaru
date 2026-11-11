@@ -8,6 +8,11 @@ import { registry } from './registry.js';
 const detalleSchema = z.strictObject({
   campo: z.string().describe('Nombre del campo que fallo'),
   mensaje: z.string().describe('Explicacion en espanol'),
+  fila: z
+    .number()
+    .int()
+    .optional()
+    .describe('Numero de fila fisica del CSV (solo en la importacion masiva)'),
 });
 
 /** Formato unico de error de toda la API (seccion 7.2). */

@@ -24,6 +24,7 @@ const RUTAS_ESPERADAS = [
   '/tipos-inmueble/{id}',
   '/contactos',
   '/contactos/{id}',
+  '/importacion/inmuebles',
 ];
 
 describe('documento OpenAPI', () => {

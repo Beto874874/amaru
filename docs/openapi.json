@@ -73,6 +73,10 @@
                     "mensaje": {
                       "type": "string",
                       "description": "Explicacion en espanol"
+                    },
+                    "fila": {
+                      "type": "integer",
+                      "description": "Numero de fila fisica del CSV (solo en la importacion masiva)"
                     }
                   },
                   "required": [
@@ -120,6 +124,10 @@
                     "mensaje": {
                       "type": "string",
                       "description": "Explicacion en espanol"
+                    },
+                    "fila": {
+                      "type": "integer",
+                      "description": "Numero de fila fisica del CSV (solo en la importacion masiva)"
                     }
                   },
                   "required": [
@@ -635,6 +643,24 @@
         "required": [
           "data",
           "meta"
+        ],
+        "additionalProperties": false
+      },
+      "RespuestaImportacion": {
+        "type": "object",
+        "properties": {
+          "insertados": {
+            "type": "integer",
+            "description": "Cantidad de inmuebles insertados"
+          },
+          "omitidos": {
+            "type": "integer",
+            "description": "Siempre 0: la importacion es todo o nada, no se omite ninguna fila"
+          }
+        },
+        "required": [
+          "insertados",
+          "omitidos"
         ],
         "additionalProperties": false
       }
@@ -4235,6 +4261,126 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde esta IP en la ventana de tiempo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor (el detalle solo queda en los logs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/importacion/inmuebles": {
+      "post": {
+        "tags": [
+          "Importacion"
+        ],
+        "summary": "Importa inmuebles desde un CSV (solo admin)",
+        "description": "Solo admin. Recibe `multipart/form-data` en el campo `archivo` (CSV UTF-8, maximo 5 MB). Valida TODAS las filas con el mismo esquema del POST normal y respeta la politica **todo o nada**: si una fila falla no se inserta ninguna y responde 422 con hasta 100 detalles `{ fila, campo, mensaje }`. Un `codigo_sae` repetido en el archivo o ya existente en la base cuenta como error de esa fila. Si todo es valido inserta en una sola transaccion, por lotes de 200, y deja `id_usuario` del admin que importo. Las columnas `id_categoria` y `matricula_inmobiliaria` se ignoran. `fecha_publicacion` llega en hora de Colombia (`America/Bogota`, UTC-5) y se guarda como instante UTC; `alertas` viene separado por `;`.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "archivo"
+                ],
+                "properties": {
+                  "archivo": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Archivo CSV UTF-8 de maximo 5 MB con la cabecera del formato original (23 columnas)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Archivo valido: todos los inmuebles fueron insertados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaImportacion"
+                },
+                "example": {
+                  "insertados": 1365,
+                  "omitidos": 0
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos (body, query o params) o regla de negocio incumplida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No hay sesion valida, el token expiro o las credenciales son incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sesion valida pero sin permiso para esta accion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "El cuerpo o el archivo supera el limite permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "El lote no se proceso porque hay filas invalidas (politica todo o nada)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorValidacion"
                 }
               }
             }

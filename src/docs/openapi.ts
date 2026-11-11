@@ -10,6 +10,7 @@ import '../modules/auth/auth.openapi.js';
 import '../modules/inmuebles/inmuebles.openapi.js';
 import '../modules/catalogos/catalogos.openapi.js';
 import '../modules/contactos/contactos.openapi.js';
+import '../modules/importacion/importacion.openapi.js';
 
 interface PackageJson {
   version: string;
